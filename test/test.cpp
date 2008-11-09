@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id:$ */
+/* $Id$ */
 
 #include <fstream>
 #include <iostream>
@@ -37,6 +37,8 @@
 #include <sstream>
 #include <dastrie.h>
 #include <optparse.h>
+
+#include <time.h>
 
 class option : public optparse
 {
@@ -126,22 +128,34 @@ int test(char *text, size_t size, const option& opt)
         return 1;
     }
 
+    size_t n = 0;
+    clock_t start = clock();
+
     key = p;
     while (*p) {
+        bool exit = (*p == 0);
+
         if (*p == '\n' || *p == 0) {
             *p = 0;
+            ++n;
             if (!trie.in(key)) {
                 es << "ERROR: The key not found, " << key << std::endl;
             }
             key = p+1;
         }
-        if (*p == 0) {
+
+        if (exit) {
             break;
         }
         ++p;
     }
+    clock_t end = clock();
 
-    return 0;    
+    os << "Number of keys: " << n << std::endl;
+    os << "Elapsed time: " <<
+        (end - start) / (double)CLOCKS_PER_SEC << std::endl;
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
