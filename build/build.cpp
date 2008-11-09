@@ -292,7 +292,7 @@ int build(char *text, size_t size, const option& opt)
         os << "Building a double array trie..." << std::endl;
         builder.build(records, records + n);
         os << std::endl << std::endl;
-    } catch (const builder_type::exception& e) {
+    } catch (const typename builder_type::exception& e) {
         // Abort if something went wrong...
         os << std::endl << std::endl;
         es << "ERROR: " << e.what() << std::endl;
