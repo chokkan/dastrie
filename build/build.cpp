@@ -196,24 +196,25 @@ inline static void set_value(char *p, char*& value)
 template <class record_type>
 static void set_records(
     record_type* records,
+    size_t n,
     char *block
     )
 {
-    size_t n = 0;
+    size_t i = 0;
     char *p = block;
 
-    for (;;) {
-        if (records[n].key == NULL) {
-            records[n].key = p;
-            init_value(records[n].value);
+    while (i < n) {
+        if (records[i].key == NULL) {
+            records[i].key = p;
+            init_value(records[i].value);
         }
         if (*p == 0) {
             break;
         } else if (*p == '\t') {
-            set_value(p, records[n].value);
+            set_value(p, records[i].value);
         } else if (*p == '\n') {
             *p = 0;
-            ++n;
+            ++i;
         }
         ++p;
     }
@@ -277,7 +278,7 @@ int build(char *text, size_t size, const option& opt)
     std::memset(records, 0, sizeof(record_type) * n);
 
     // Set records from the input text.
-    set_records(records, text); 
+    set_records(records, n, text); 
 
     os << "Size of input text: " << size << std::endl;
     os << "Number of records: " << n << std::endl;
@@ -285,12 +286,18 @@ int build(char *text, size_t size, const option& opt)
 
     // Build a double-array trie.
     builder_type builder;
-    progress prog(os);
-    builder.set_callback(&prog, prog.callback);
-    os << "Building a double array trie..." << std::endl;
-    builder.build(records, records + n);
-    os << std::endl;
-    os << std::endl;
+    try {
+        progress prog(os);
+        builder.set_callback(&prog, prog.callback);
+        os << "Building a double array trie..." << std::endl;
+        builder.build(records, records + n);
+        os << std::endl << std::endl;
+    } catch (const builder_type::exception& e) {
+        // Abort if something went wrong...
+        os << std::endl << std::endl;
+        es << "ERROR: " << e.what() << std::endl;
+        return 1;
+    }
 
     // Report the statistics of the trie.
     const typename builder_type::stat_type& stat = builder.stat();

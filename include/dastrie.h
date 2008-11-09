@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id:$ */
+/* $Id$ */
 
 /*
 This code assumes that elements of a vector are in contiguous memory,
@@ -408,7 +408,6 @@ public:
 
     /**
      * Puts a value of a basic type to the tail array.
-     *  @param  value_type  The type of the value.
      *  @param  value       The reference to the value.
      *  @return otail&      The reference to this object.
      */
@@ -554,7 +553,7 @@ public:
     inline bool match_string(const char *str)
     {
         size_type length = std::strlen(str) + 1;
-        if (m_offset + length < m_cont.size()) {
+        if (m_offset + length <= m_cont.size()) {
             if (std::memcmp(&m_cont[m_offset], str, length) == 0) {
                 return true;
             }
@@ -573,7 +572,7 @@ public:
     {
         size_type length = std::strlen(
             reinterpret_cast<const char *>(&m_cont[m_offset]));
-        if (m_offset + length + 1 < m_cont.size()) {
+        if (m_offset + length + 1 <= m_cont.size()) {
             if (std::memcmp(&m_cont[m_offset], str, length) == 0) {
                 if (m_cont[m_offset + length] == 0) {
                     return true;
@@ -600,7 +599,6 @@ public:
 
     /**
      * Gets a value of a basic type from the tail array.
-     *  @param  value_type  The type of the value.
      *  @param[out] value   The reference to the value.
      *  @return itail&      The reference to this object.
      */
@@ -771,7 +769,7 @@ public:
 
     /**
      * Gets the number of records in the trie.
-     *  @param  size_type   The number of records.
+     *  @return size_type   The number of records.
      */
     size_type size() const
     {
@@ -859,30 +857,37 @@ protected:
     size_type locate(const char *key)
     {
         const char *p = key;
+        const char *last = key + strlen(key);
         size_type offset = 0;
         size_type cur = INITIAL_INDEX;
         const uint8_t* table = m_table;
 
         for (;;) {
+            base_type base = get_base(cur);
+            if (base < 0) {
+                // The element #cur is a leaf node.
+                offset = (size_type)-base;
+                break;
+            }
+
+            // If the pointer exceeded the end of string.
+            if (last < p) {
+                // The key string couldn't reach a leaf node.
+                return false;
+            }
+
             // Try to descend to the child node.
             cur = descend(cur, *reinterpret_cast<const uint8_t*>(p));
             if (cur == INVALID_INDEX) {
                 return false;
             }
 
-            base_type base = get_base(cur);
-            if (base < 0) {
-                // The element #cur is a leaf node.
-                if (*p != 0) ++p;
-                offset = (size_type)-base;
-                break;
-            }
-
-            if (*p == 0) {
-                // The key string couldn't reach a leaf node.
-                return false;
-            }
             ++p;
+        }
+
+        // 
+        if (last < p) {
+            p = last;
         }
 
         // Seek to the position of the key postfix in the TAIL.
@@ -1333,7 +1338,7 @@ public:
 
         // Initialize the tail array.
         m_tail.clear();
-        m_tail << (uint8_t)0;
+        m_tail.write<uint8_t>(0);
 
         // Initialize the vacant linked list.
         vlist_init();
@@ -1750,10 +1755,10 @@ Japanese Kana-Kanji convertion.
 
 Static Double Array Trie (DASTrie) is an implementation of static double-array
 trie. For the simplicity and efficiency, DASTrie focuses on building a
-<i>static</i> double array from a list of records sorted by dictionary order
-of keys. DASTrie does not provide the functionality for updating an existing
-trie, whereas the original framework of double array supports dynamic updates.
-DASTrie provides several features:
+<i>static</i> double array from a list of records <i>sorted by dictionary
+order of keys</i>. DASTrie does not provide the functionality for updating an
+existing trie, whereas the original framework of double array considers
+dynamic updates. DASTrie provides several features:
 - <b>Associative array.</b> DASTrie is designed to store associations between
   key strings and their values (similarly to \c std::map). Thus, it is very
   straightforward to put and obtain the record values for key strings, while
@@ -1761,7 +1766,7 @@ DASTrie provides several features:
   It is also possible to omit record values so that DASTrie behaves as a
   string set (e.g., \c std::set).
 - <b>Configurable value type.</b> A type of record values is configurable by
-  a template argument of dastrie::trie and dastrie::builder. Any basic type
+  a template argument of dastrie::trie and dastrie::builder. Basic types
   (e.g., \c int, \c double) and strings (\c char* and \c std::string) can be
   used as a value type of records without any additional effort. User-defined
   types can also be used as record values only if two operators for
@@ -1801,22 +1806,134 @@ DASTrie provides several features:
 @section download Download
 
 - <a href="http://www.chokkan.org/software/dist/dastrie-1.0.tar.gz">Source code</a>
-- <a href="http://www.chokkan.org/software/dist/dastrie-1.0_win32.zip">Win32 binary</a>
 
 DASTrie is distributed under the term of the
 <a href="http://www.opensource.org/licenses/bsd-license.php">modified BSD license</a>.
 
 @section changelog History
-- Version 1.0 (2008-11-03):
+- Version 1.0 (2008-11-10):
 	- Initial release.
 
 @section sample Sample code
 
 @include sample.cpp
 
-@section tutorial Tutorial
+@section api Documentation
 
-@subsection tutorial_preparation Preparation
+- @ref tutorial "DASTrie Tutorial"
+- @ref dastrie_api "DASTrie API"
+
+@section performance Performance
+
+This section reports results of performance comparison of different trie
+implementations. The experiments used two text corpora,
+<a href="http://www.ldc.upenn.edu/Catalog/CatalogEntry.jsp?catalogId=LDC2006T13">Google Web 1T corpus</a>
+and 
+<a href="http://lexsrv3.nlm.nih.gov/SPECIALIST/index.html">SPECIALIST Lexicon</a>.
+For each text corpus, the experiments measured the elapsed time for
+constructing a trie (build time), the total time for finding all of keys in
+the corpus (access time), and the size of the trie database generated.
+
+@subsection performance_google Google Web 1T corpus
+
+In this experiment, 13,588,391 unigrams (125,937,836 bytes) in the Google Web
+1T corpus were inserted to a trie as keys (without frequency information).
+TinyDA was not used in this experiment because the corpus is too large to
+store keys within 0x007FFFF double-array elements.
+
+<table>
+<tr>
+<th>Implementation</th><th>Parameters</th><th>Build [sec]</th><th>Access [sec]</th><th>Database [bytes]</th>
+</tr>
+<tr align="right">
+<td align="left">DASTrie 1.0</td>
+<td align="left">Default</td>
+<td>182</td><td>1.72</td><td>131,542,286</td>
+</tr>
+<tr align="right">
+<td align="left">darts 0.32</td>
+<td align="left">Default</td>
+<td>22.3</td><td>1.25</td><td>406,358,432</td>
+</tr>
+<tr align="right">
+<td align="left">DynDA 0.01</td>
+<td align="left">Default</td>
+<td>335</td><td>2.53</td><td>195,374,108</td>
+</tr>
+<tr align="right">
+<td align="left">Tx 0.12</td>
+<td align="left">Default</td>
+<td>28.3</td><td>26.6</td><td>52,626,805</td>
+</tr>
+</table>
+
+@subsection performance_umls LRWD table of UMLS SPECIALIST Lexicon
+
+In this experiment, 351,006 lexicon (4,026,389 bytes) in the LRWD table of
+UMLS SPECIALIST Lexicon were inserted to a trie as keys. DASTrie was
+configured to represent a double-array element in 5 bytes (default) and 4
+bytes (compact).
+
+<table>
+<tr>
+<th>Implementation</th><th>Parameters</th><th>Build [sec]</th><th>Access [sec]</th><th>Database [bytes]</th>
+</tr>
+<tr align="right">
+<td align="left">DASTrie 1.0</td>
+<td align="left">Default</td>
+<td>0.30</td><td>0.05</td><td>4,534,068</td>
+</tr>
+<tr align="right">
+<td align="left">DASTrie 1.0</td>
+<td align="left">Compact (-c)</td>
+<td>0.27</td><td>0.06</td><td>3,783,252</td>
+</tr>
+<tr align="right">
+<td align="left">darts 0.32</td>
+<td align="left">Default</td>
+<td>0.65</td><td>0.04</td><td>12,176,328</td>
+</tr>
+<tr align="right">
+<td align="left">DynDA 0.01</td>
+<td align="left">Default</td>
+<td>0.28</td><td>0.07</td><td>7,095,226</td>
+</tr>
+<tr align="right">
+<td align="left">TinyDA 1.23</td>
+<td align="left">Default</td>
+<td>0.36</td><td>0.06</td><td>4,575,520</td>
+</tr>
+<tr align="right">
+<td align="left">Tx 0.12</td>
+<td align="left">Default</td>
+<td>0.68</td><td>0.70</td><td>1,646,558</td>
+</tr>
+</table>
+
+@section acknowledgements Acknowledgements
+The data structure of the (static) double-array trie is described in:
+- Jun-ichi Aoe. An efficient digital search algorithm by using a double-array structure. <i>IEEE Transactions on Software Engineering</i>, Vol. 15, No. 9, pp. 1066-1077, 1989.
+- Susumu Yata, Masaki Oono, Kazuhiro Morita, Masao Fuketa, Toru Sumitomo, and Jun-ichi Aoe. A compact static double-array keeping character codes. <i>Information Processing and Management</i>, Vol. 43, No. 1, pp. 237-247, 2007.
+
+The DASTrie distribution contains "a portable stdint.h", which is released by
+Paul Hsieh under the term of the modified BSD license, for addressing the
+compatibility issue of Microsoft Visual Studio 2008. The original code is
+available at: http://www.azillionmonkeys.com/qed/pstdint.h
+
+
+@section reference References
+- <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a> by Theppitak Karoonboonyanan.
+- <a href="http://chasen.org/~taku/software/darts/">Darts: Double-ARray Trie System</a> by Taku Kudo.
+- <a href="http://nanika.osonae.com/DynDA/index.html">Dynamic Double-Array Library</a> by Susumu Yata.
+- <a href="http://nanika.osonae.com/TinyDA/index.html">Tiny Double-Array Library</a> by Susumu Yata.
+- <a href="http://www-tsujii.is.s.u-tokyo.ac.jp/~hillbig/tx.htm">Tx: Succinct Trie Data structure</a> by Daisuke Okanohara.
+
+*/
+
+/**
+@page tutorial DASTrie Tutorial
+
+@section tutorial_preparation Preparation
 
 Put the header file "dastrie.h" to a INCLUDE path, and include the file to a
 C++ source code. It's that simple.
@@ -1824,7 +1941,7 @@ C++ source code. It's that simple.
 #include <dastrie.h>
 @endcode
 
-@subsection tutorial_builder_type Customizing a builder type
+@section tutorial_builder_type Customizing a builder type
 
 First of all, we need to design the types of records (keys and values) for
 a trie, and derive a specialization of a builder. Key and record types can
@@ -1905,7 +2022,7 @@ number of elements is different from the number of records</i>). Specify
 dastrie::doublearray4_traits at the third argument for implementing a double
 array with 4 bytes per element.
 
-@subsection tutorial_builder Building a trie
+@section tutorial_builder Building a trie
 
 After designing a builder class, prepare records to be stored in a trie.
 You can use dastrie::builder::record_type to define a record type.
@@ -1954,7 +2071,7 @@ std::ofstream ofs("sample.db", std::ios::binary);
 builder.write(ofs);
 @endcode
 
-@subsection tutorial_retrieve Accessing a trie
+@section tutorial_retrieve Accessing a trie
 
 The class dastrie::trie provides the read access to a trie. The first template
 argument specifies the value type of a trie, and the second argument customizes
@@ -1989,76 +2106,6 @@ Now you are ready to access the trie. Please refer to the
 retrieving a record (dastrie::trie::get() and dastrie::trie::find()),
 checking the existence of a record (dastrie::trie::in()),
 and retrieving records that are prefixes of keys (dastrie::trie::prefix()).
-
-@section api Documentation
-
-- @ref dastrie_api "DASTrie API"
-
-@section performance Performance
-
-This table shows the elapsed time for constructing a trie (write time), the
-average time for processing a query (read time), and the size of the trie
-generated for Google Web 1T 5-gram Version 1. In this experiment, all of
-13,588,391 unigrams (125,937,836 bytes) in the Google Web 1T corpus are
-inserted to the trie. Write time is measured by the total time elapsed for
-inserting all unigrams (without frequency information) as key strings.
-Read time is defined as the average elapsed time for a trie system to search
-a unigram.
-
-The read/write access was extremely faster than those of other database
-libraries. The database was smaller than half the size of those generated by
-other libraries.
-This results suggest that the CQDB has the substantial advantage over the
-existing database libraries for implementing a static quark database.
-
-<table>
-<tr>
-<th>Implementation</th><th>Parameters</th><th>Write time [sec]</th><th>Read time [sec]</th><th>Database size [MB]</th>
-</tr>
-<tr align="right">
-<td align="left">DASTrie 1.0</td>
-<td align="left">UR = 0.95</td>
-<td><b>1.48</b></td><td><b>0.65</b></td><td><b>35.2</b></td>
-</tr>
-<tr align="right">
-<td align="left">DASTrie 1.0</td>
-<td align="left">UR = 0.50</td>
-<td><b>1.48</b></td><td><b>0.65</b></td><td><b>35.2</b></td>
-</tr>
-<tr align="right">
-<td align="left">darts 0.32</td>
-<td align="left">Default</td>
-<td>91.8</td><td>37.5</td><td>79.7</td>
-</tr>
-<tr align="right">
-<td align="left">DynDA 0.01</td>
-<td align="left">Default</td>
-<td>95.4</td><td>80.6</td><td>76.3</td>
-</tr>
-<tr align="right">
-<td align="left">TinyDA 1.23</td>
-<td align="left">Default</td>
-<td>95.4</td><td>80.6</td><td>76.3</td>
-</tr>
-<tr align="right">
-<td align="left">Tx 0.12</td>
-<td align="left">table_size=4000000</td>
-<td>15.7</td><td>12.0</td><td>92.2</td>
-</tr>
-</table>
-
-@section acknowledgements Acknowledgements
-The data structure of the (static) double-array trie is described in:
-- Jun-ichi Aoe. An efficient digital search algorithm by using a double-array structure. <i>IEEE Transactions on Software Engineering</i>, Vol. 15, No. 9, pp. 1066-1077, 1989.
-- Susumu Yata, Masaki Oono, Kazuhiro Morita, Masao Fuketa, Toru Sumitomo, and Jun-ichi Aoe. A compact static double-array keeping character codes. <i>Information Processing and Management</i>, Vol. 43, No. 1, pp. 237-247, 2007.
-
-@section reference References
-- <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a> by Theppitak Karoonboonyanan.
-- <a href="http://chasen.org/~taku/software/darts/">Darts: Double-ARray Trie System</a> by Taku Kudo.
-- <a href="http://nanika.osonae.com/DynDA/index.html">Dynamic Double-Array Library</a> by Susumu Yata.
-- <a href="http://nanika.osonae.com/TinyDA/index.html">Tiny Double-Array Library</a> by Susumu Yata.
-- <a href="http://www-tsujii.is.s.u-tokyo.ac.jp/~hillbig/tx.htm">Tx: Succinct Trie Data structure</a> by Daisuke Okanohara.
-
 */
 
 #endif/*__DASTRIE_H__*/
