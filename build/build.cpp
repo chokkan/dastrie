@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id:$ */
+/* $Id$ */
 
 #include <fstream>
 #include <iostream>
@@ -260,7 +260,7 @@ template <class value_type, class traits_type>
 int build(char *text, size_t size, const option& opt)
 {
     typedef dastrie::builder<char*, value_type, traits_type> builder_type;
-    typedef builder_type::record_type record_type;
+    typedef typename builder_type::record_type record_type;
 
     std::ostream& os = std::cout;
     std::ostream& es = std::cerr;
@@ -293,7 +293,7 @@ int build(char *text, size_t size, const option& opt)
     os << std::endl;
 
     // Report the statistics of the trie.
-    const builder_type::stat_type& stat = builder.stat();
+    const typename builder_type::stat_type& stat = builder.stat();
     os << "[Double array]" << std::endl;
     os << "Size in bytes: " << stat.da_size << std::endl;
     os << "Number of nodes: " << stat.da_num_nodes << std::endl;

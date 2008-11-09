@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id:$ */
+/* $Id$ */
 
 #include <fstream>
 #include <iostream>
@@ -196,7 +196,7 @@ int search(const option& opt)
             break;
         case option::MODE_PREFIX:
             {
-                trie_type::prefix_cursor pfx = trie.prefix(line.c_str());
+                typename trie_type::prefix_cursor pfx = trie.prefix(line.c_str());
                 while (pfx.next()) {
                     os << pfx.query.substr(0, pfx.length) << '\t';
                     output_value(os, pfx.value) << std::endl;
