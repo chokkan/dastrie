@@ -1302,10 +1302,9 @@ public:
 
     /**
      * Builds a double-array trie from sorted records.
-     *  @param  first       The random-access iterator addressing the position
-     *                      of the first record.
-     *  @param  last        The random-access iterator addressing the position
-     *                      one past the final record.
+     *  @param  first       The pointer addressing the first record.
+     *  @param  last        The pointer addressing the position one past the
+     *                      final record.
      */
     void build(const record_type* first, const record_type* last)
     {
@@ -1843,7 +1842,7 @@ the corpus (access time), and the size of the trie database generated.
 In this experiment, 13,588,391 unigrams (125,937,836 bytes) in the Google Web
 1T corpus were inserted to a trie as keys (without frequency information).
 TinyDA was not used in this experiment because the corpus is too large to
-store keys within 0x007FFFF double-array elements.
+store keys within 0x007FFFFF double-array elements.
 
 <table>
 <tr>
@@ -1852,7 +1851,7 @@ store keys within 0x007FFFF double-array elements.
 <tr align="right">
 <td align="left">DASTrie 1.0</td>
 <td align="left">Default</td>
-<td>182</td><td>1.72</td><td>131,542,286</td>
+<td>182</td><td>1.72</td><td>131,542,283</td>
 </tr>
 <tr align="right">
 <td align="left">darts 0.32</td>
@@ -1885,12 +1884,12 @@ bytes (compact).
 <tr align="right">
 <td align="left">DASTrie 1.0</td>
 <td align="left">Default</td>
-<td>0.30</td><td>0.05</td><td>4,534,068</td>
+<td>0.30</td><td>0.05</td><td>4,534,065</td>
 </tr>
 <tr align="right">
 <td align="left">DASTrie 1.0</td>
 <td align="left">Compact (-c)</td>
-<td>0.27</td><td>0.06</td><td>3,783,252</td>
+<td>0.27</td><td>0.06</td><td>3,783,249</td>
 </tr>
 <tr align="right">
 <td align="left">darts 0.32</td>
@@ -2058,8 +2057,8 @@ Now you are ready to build a trie. Instantiate the builder class,
 builder_type builder;
 @endcode
 If necessary, set a callback function by using dastrie::builder::set_callback()
-to receive progress reports in building a trie. Refer to dastrie_build.cpp for
-an actual usage.
+to receive progress reports in building a trie. Refer to build.cpp for an
+actual usage.
 
 Call dastrie::builder::build to build a trie from records. The first argument
 is the iterator (pointer) addressing to the first record, and the second

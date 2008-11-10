@@ -35,4 +35,14 @@ http://www.chokkan.org/software/dastrie/
 DASTrie is distributed under the term of the modified BSD license.
 Please refer to COPYING file in the distribution.
 
+
+
+=========================================================================
+3. Acknowledgements
+=========================================================================
+The DASTrie distribution contains "a portable stdint.h", which is released by
+Paul Hsieh under the term of the modified BSD license, for addressing the
+compatibility issue of Microsoft Visual Studio 2008. The original code is
+available at: http://www.azillionmonkeys.com/qed/pstdint.h
+
 $Id: README 14 2008-07-09 15:15:00Z naoaki $

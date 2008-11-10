@@ -58,7 +58,7 @@ AC_ARG_ENABLE(
         [build for debugging]
         )],
     [CFLAGS="-DDEBUG -O -g ${CFLAGS}"],
-    [CFLAGS="-O3 -ffast-math ${CFLAGS}"]
+    [CFLAGS="-O3 ${CFLAGS}"]
 )
 
 dnl ------------------------------------------------------------------
