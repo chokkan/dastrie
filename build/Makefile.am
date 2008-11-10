@@ -3,7 +3,7 @@
 EXTRA_DIST = \
 	build.vcproj
 
-noinst_PROGRAMS = dastrie-build
+bin_PROGRAMS = dastrie-build
 
 dastrie_build_SOURCES = \
 	../include/dastrie.h \

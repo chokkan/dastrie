@@ -1,6 +1,6 @@
 # $Id$
 
-SUBDIRS = sample build search test
+SUBDIRS = include sample build search test
 
 docdir = $(prefix)/share/doc/@PACKAGE@
 doc_DATA = README INSTALL COPYING AUTHORS ChangeLog NEWS
