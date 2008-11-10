@@ -1,6 +1,4 @@
 # $Id$
 
-dastrieincludedir = $(includedir)
-
-dastrieincludedir_HEADERS = \
+include_HEADERS = \
 	dastrie.h
