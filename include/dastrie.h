@@ -935,18 +935,22 @@ protected:
         }
 
         for (;;) {
+            base_type base = get_base(pfx.cur);
+            if (base < 0) {
+                // The element #(pfx.cur) is a leaf node.
+                offset = (size_type)-base;
+                break;
+            }
+
+            if (pfx.query.length() < pfx.length) {
+                // The key string couldn't reach a leaf node.
+                return false;
+            }
+
             // Try to descend to the child node.
             pfx.cur = descend(pfx.cur, (uint8_t)p[pfx.length]);
             if (pfx.cur == INVALID_INDEX) {
                 return false;
-            }
-
-            base_type base = get_base(pfx.cur);
-            if (base < 0) {
-                // The element #(pfx.cur) is a leaf node.
-                if (p[pfx.length] != 0) ++pfx.length;
-                offset = (size_type)-base;
-                break;
             }
 
             // Try to descend to the child node with '\0'.
@@ -955,11 +959,11 @@ protected:
                 base = get_base(cur);
                 if (base != 0) {
                     if (0 <= base) {
-                        throw exception("");
+                        throw exception("An invalid arc found after a null character");
                     }
                     m_tail.seekg((size_type)-base);
                     if (m_tail.strlen() != 0) {
-                        throw exception("");
+                        throw exception("A non empty tail found after a null character");
                     }
                     ++pfx.length;
                     m_tail.seekg(((size_type)-base) + 1);
@@ -968,11 +972,11 @@ protected:
                 }
             }
 
-            if (p[pfx.length] == 0) {
-                // The key string couldn't reach a leaf node.
-                return false;
-            }
             ++pfx.length;
+        }
+
+        if (pfx.query.length() < pfx.length) {
+            pfx.length = pfx.query.length();
         }
 
         // Seek to the position of the key postfix in the TAIL.
