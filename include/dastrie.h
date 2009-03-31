@@ -51,8 +51,8 @@ http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#69
 #include <stdint.h>
 
 #define DASTRIE_MAJOR_VERSION   1
-#define DASTRIE_MINOR_VERSION   0
-#define DASTRIE_COPYRIGHT       "Copyright (c) 2008 Naoaki Okazaki"
+#define DASTRIE_MINOR_VERSION   1
+#define DASTRIE_COPYRIGHT       "Copyright (c) 2008,2009, Naoaki Okazaki"
 
 namespace dastrie {
 
@@ -934,6 +934,11 @@ protected:
             return false;
         }
 
+        if (get_base(pfx.cur) < 0) {
+            // We have already reached a leaf node.
+            return false;
+        }
+
         for (;;) {
             base_type base = get_base(pfx.cur);
             if (base < 0) {
@@ -1192,6 +1197,20 @@ public:
     {
         key_type key;       ///< The key of the record.
         value_type value;   ///< The value of the record.
+
+        record_type()
+        {
+        }
+
+        record_type(const key_type& _key, const value_type& _value)
+            : key(_key), value(_value)
+        {
+        }
+
+        friend bool operator<(const record_type& x, const record_type& y)
+        {
+            return x.key < y.key;
+        }
     };
 
 
