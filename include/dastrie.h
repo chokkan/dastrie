@@ -91,7 +91,7 @@ struct doublearray4_traits
     /// A type that represents an element of a check array.
     typedef uint8_t check_type;
     /// A type that represents an element of a double array.
-    typedef int32_t element_type;
+    typedef uint32_t element_type;
 
     /// The chunk ID.
     inline static const char *chunk_id()
@@ -121,7 +121,7 @@ struct doublearray4_traits
     /// Gets the BASE value of an element.
     inline static base_type get_base(const element_type& elem)
     {
-        return (elem >> 8);
+        return ((base_type)elem >> 8);
     }
 
     /// Gets the CHECK value of an element.
@@ -133,13 +133,13 @@ struct doublearray4_traits
     /// Sets the BASE value of an element.
     inline static void set_base(element_type& elem, base_type v)
     {
-        elem = (elem & 0x000000FF) | (v << 8);
+        elem = (elem & 0x000000FF) | (element_type)(v << 8);
     }
 
     /// Sets the CHECK value of an element.
     inline static void set_check(element_type& elem, check_type v)
     {
-        elem = (elem & 0xFFFFFF00) | (base_type)v;
+        elem = (elem & 0xFFFFFF00) | (element_type)v;
     }
 };
 
@@ -1196,20 +1196,6 @@ public:
     {
         key_type key;       ///< The key of the record.
         value_type value;   ///< The value of the record.
-
-        record_type()
-        {
-        }
-
-        record_type(const key_type& _key, const value_type& _value)
-            : key(_key), value(_value)
-        {
-        }
-
-        friend bool operator<(const record_type& x, const record_type& y)
-        {
-            return x.key < y.key;
-        }
     };
 
 
