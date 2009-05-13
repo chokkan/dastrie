@@ -767,6 +767,15 @@ public:
     }
 
     /**
+     * Checks whether the double array is ready.
+     *  @return bool        \c true if ready, \c false otherwise.
+     */
+    inline operator bool() const
+    {
+        return (static_cast<bool>(m_da) && static_cast<bool>(m_tail));
+    }
+
+    /**
      * Gets the number of records in the trie.
      *  @return size_type   The number of records.
      */
