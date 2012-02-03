@@ -1,13 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sample", "sample\sample.vcproj", "{BD905E73-BE52-46FD-88C6-009614F07DC6}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sample", "sample\sample.vcxproj", "{BD905E73-BE52-46FD-88C6-009614F07DC6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build", "build\build.vcproj", "{11B22262-774C-4892-A4E0-52BAA69CB3D7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build", "build\build.vcxproj", "{11B22262-774C-4892-A4E0-52BAA69CB3D7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "search", "search\search.vcproj", "{DBAF8A16-674A-4613-9C97-C4F7E1B52B59}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "search", "search\search.vcxproj", "{DBAF8A16-674A-4613-9C97-C4F7E1B52B59}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcproj", "{5DED655B-25F1-4B99-8A50-694617563B0F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{5DED655B-25F1-4B99-8A50-694617563B0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
